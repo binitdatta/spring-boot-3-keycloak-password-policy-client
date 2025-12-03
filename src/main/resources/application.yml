@@ -1,0 +1,12 @@
+server:
+  port: 9857
+
+keycloak:
+  admin:
+    server-url: http://0.0.0.0:8080
+    realm: master
+    client-id: admin-cli
+    username: binitdatta
+    password: password
+  password-policy:
+    value: length(8) and hashIterations(27500) and hashAlgorithm(pbkdf2-sha256) and passwordHistory(5) and notUsername
