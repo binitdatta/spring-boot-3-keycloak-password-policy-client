@@ -20,21 +20,7 @@ Inside `init()`:
 @PostConstruct
 public void init() {
     try {
-        session.getTransactionManager().begin();
-
-        samlRealmClientSecret = config.getProperty(...);
-
-        createMasterRealmAdminUser(session);   // creates master admin if missing
-        createMaactiveRealm(session);          // creates/initializes maactive realm
-        if (sciRealmEnabled) {
-            createSCIRealm(session, sciRealmName);
-        }
-        if (samlRealmSetupFlag) {
-            createSamlRealm(session, samlRealmName);
-        }
-    } finally {
-        session.close();
-    }
+ 
 }
 ```
 
@@ -50,11 +36,7 @@ Key points:
 Right now, `createRealm(...)` builds this:
 
 ```
-RealmRepresentation realmRep = new RealmRepresentation();
-realmRep.setRealm(realmName);
-...
-realmManager.importRealm(realmRep);
-realm = session.realms().getRealmByName(realmName);
+
 ```
 
 So if you want **MA Active** to have a blacklist-based policy, you can do something like:
@@ -122,40 +104,7 @@ You already create/clean `data` and call `kc.sh build`. Let’s extend `doLast` 
 In your `prepareKeycloakDistribution` task, inside `doLast { ... }`, add:
 
 ```
-    // Ensure data/password-blacklists exists and copy blacklist file from resources
-    doLast {
-        ...
-        // existing copy blocks (config, providers, themes, etc.)
-
-        def dataDir = new File("${augmentedKeycloakDir.get().asFile}/data")
-        if (!dataDir.exists()) {
-            println "📁 Creating missing data directory at ${dataDir.absolutePath}"
-            dataDir.mkdirs()
-        }
-
-        // 🔐 Create password-blacklists directory
-        def passwordBlacklistDir = new File(dataDir, "password-blacklists")
-        if (!passwordBlacklistDir.exists()) {
-            println "📁 Creating password-blacklists directory at ${passwordBlacklistDir.absolutePath}"
-            passwordBlacklistDir.mkdirs()
-        }
-
-        // 🔐 Copy your blacklist file from src/main/resources
-        copy {
-            from("src/main/resources/2025-199_most_used_passwords.txt")
-            into(passwordBlacklistDir.absolutePath)
-            println "📄 Copied password blacklist to ${passwordBlacklistDir.absolutePath}"
-        }
-
-        exec {
-            workingDir augmentedKeycloakDir.get().asFile
-            environment kcBuildEnv
-            commandLine "${augmentedKeycloakDir.get().asFile}/bin/kc.sh", "build",
-                    "--features=fips", "--fips-mode=strict"
-        }
-        println "kc.sh build command completed."
-        ...
-    }
+ 
 ```
 
 Things to note:
